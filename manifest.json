@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Alpha Date Parser",
+  "version": "1.0",
+  "description": "Passive data collector for alpha.date",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://alpha.date/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://alpha.date/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Alpha Parser"
+  }
+}
