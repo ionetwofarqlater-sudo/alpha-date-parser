@@ -1,23 +1,33 @@
 const toggleBtn = document.getElementById("toggleBtn");
 const statusEl = document.getElementById("status");
 
-function updateUI(enabled, count) {
+document.getElementById("version").textContent = "v" + chrome.runtime.getManifest().version;
+
+function formatStats(data) {
+  if (!data || data.length === 0) return "No snapshots yet";
+  const last = data[data.length - 1];
+  const msgCount = data.reduce((s, d) => s + (d.messages ? d.messages.length : 0), 0);
+  const uniqueChats = new Set(data.map(d => d.chatId).filter(Boolean)).size;
+  const lastTime = last.timestamp ? new Date(last.timestamp).toLocaleTimeString() : "";
+  return `${data.length} snapshots | ${msgCount} messages | ${uniqueChats} chats\nLast: ${lastTime}`;
+}
+
+function updateUI(enabled, data) {
   toggleBtn.textContent = enabled ? "● ON — collecting" : "○ OFF — paused";
   toggleBtn.className = enabled ? "on" : "off";
-  statusEl.textContent = `Snapshots collected: ${count}`;
+  statusEl.textContent = formatStats(data);
 }
 
 chrome.storage.local.get(["alphaData", "alphaEnabled"], result => {
-  const enabled = result.alphaEnabled !== false; // default ON
-  updateUI(enabled, (result.alphaData || []).length);
+  const enabled = result.alphaEnabled !== false;
+  updateUI(enabled, result.alphaData || []);
 });
 
 toggleBtn.addEventListener("click", () => {
   chrome.storage.local.get(["alphaData", "alphaEnabled"], result => {
-    const current = result.alphaEnabled !== false;
-    const next = !current;
+    const next = !(result.alphaEnabled !== false);
     chrome.storage.local.set({ alphaEnabled: next }, () => {
-      updateUI(next, (result.alphaData || []).length);
+      updateUI(next, result.alphaData || []);
     });
   });
 });
