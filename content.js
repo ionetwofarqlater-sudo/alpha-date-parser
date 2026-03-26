@@ -47,12 +47,13 @@ function parseChatList() {
 
   // Try specific card selectors first (from observed class patterns)
   const cardSelectors = [
+    '[class*="clmn_1_mm_chat_list_item"]',
     '[class*="ProfilesList_clmn_1_profiles_item"]',
+    '[class*="clmn_1_profiles_item"]',
     '[class*="profile_item"]',
     '[class*="profileItem"]',
     '[class*="chat_item"]',
-    '[class*="chatItem"]',
-    '[class*="clmn_1_profiles_item"]'
+    '[class*="chatItem"]'
   ];
 
   let cards = [];
@@ -81,10 +82,15 @@ function parseChatList() {
     if (key.length < 2 || seen.has(key)) return null;
     seen.add(key);
 
-    // Try to extract name separately from last message preview
+    // Name: first image alt, or first short line
     const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
-    const name = lines[0] || "";
-    const lastMessage = lines.slice(1).join(' ').substring(0, 100);
+    const name = (imgEl && imgEl.alt) ? imgEl.alt : lines[0] || "";
+
+    // Last message preview: dedicated element or second line
+    const previewEl = card.querySelector('[class*="last_message"], [class*="lastMessage"], [class*="preview"], [class*="message_text"], [class*="messageText"]');
+    const lastMessage = previewEl
+      ? previewEl.innerText.trim().substring(0, 100)
+      : lines.slice(1).join(' ').substring(0, 100);
 
     // Unread badge — usually a number in a small element
     const unreadEl = card.querySelector('[class*="unread"], [class*="badge"], [class*="counter"], [class*="count"]');
